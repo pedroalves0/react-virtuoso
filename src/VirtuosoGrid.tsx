@@ -4,7 +4,7 @@ import { VirtuosoGridEngine } from './VirtuosoGridEngine'
 import { VirtuosoScroller, TScrollContainer } from './VirtuosoScroller'
 import { useOutput, useSize } from './Utils'
 import { viewportStyle } from './Style'
-import { VirtuosoFiller } from './VirtuosoFiller'
+import { VerticalFiller } from './VirtuosoFiller'
 import { TScrollLocation } from './EngineCommons'
 import { ListRange } from './engines/scrollSeekEngine'
 
@@ -121,7 +121,7 @@ const VirtuosoGridFC: React.FC<VirtuosoGridFCProps> = ({
         )}
       </div>
 
-      <VirtuosoFiller height={fillerHeight} />
+      <VerticalFiller height={fillerHeight} />
     </VirtuosoScroller>
   )
 }

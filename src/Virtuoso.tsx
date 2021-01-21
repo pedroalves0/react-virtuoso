@@ -22,6 +22,7 @@ export interface VirtuosoProps {
   prependItemCount?: number
   itemHeight?: number
   defaultItemHeight?: number
+  isHorizontal?: boolean
   endReached?: (index: number) => void
   scrollingStateChange?: TSubscriber<boolean>
   atBottomStateChange?: TSubscriber<boolean>
@@ -48,6 +49,7 @@ export interface TVirtuosoPresentationProps {
   style?: CSSProperties
   className?: string
   itemHeight?: number
+  isHorizontal?: boolean
   ScrollContainer?: TScrollContainer
   FooterContainer?: TFooterContainer
   ListContainer?: TListContainer
@@ -57,7 +59,17 @@ export { TScrollContainer, TListContainer }
 
 const DEFAULT_STYLE = {}
 export const VirtuosoPresentation: FC<TVirtuosoPresentationProps> = React.memo(
-  ({ contextValue, style, className, footer, itemHeight, ScrollContainer, ListContainer, FooterContainer }) => {
+  ({
+    contextValue,
+    style,
+    className,
+    footer,
+    itemHeight,
+    ScrollContainer,
+    ListContainer,
+    FooterContainer,
+    isHorizontal,
+  }) => {
     return (
       <VirtuosoContext.Provider value={contextValue}>
         <VirtuosoView
@@ -68,6 +80,7 @@ export const VirtuosoPresentation: FC<TVirtuosoPresentationProps> = React.memo(
           ScrollContainer={ScrollContainer}
           FooterContainer={FooterContainer}
           ListContainer={ListContainer || DefaultListContainer}
+          isHorizontal={isHorizontal}
         />
       </VirtuosoContext.Provider>
     )
@@ -137,6 +150,8 @@ export const Virtuoso = forwardRef<VirtuosoMethods, VirtuosoProps>((props, ref) 
     props.dataKey,
   ])
 
+  console.log('INIT2')
+
   return (
     <VirtuosoPresentation
       contextValue={state}
@@ -147,6 +162,7 @@ export const Virtuoso = forwardRef<VirtuosoMethods, VirtuosoProps>((props, ref) 
       ScrollContainer={props.ScrollContainer}
       FooterContainer={props.FooterContainer}
       ListContainer={props.ListContainer}
+      isHorizontal={props.isHorizontal}
     />
   )
 })

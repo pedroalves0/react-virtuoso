@@ -1,8 +1,18 @@
 import React, { FC, CSSProperties, useCallback, useRef } from 'react'
 
-const scrollerStyle: React.CSSProperties = {
-  height: '40rem',
+const verticalStyle: React.CSSProperties = {
+  height: '100%',
   overflowY: 'auto',
+  WebkitOverflowScrolling: 'touch',
+  position: 'relative',
+  outline: 'none',
+}
+
+const horizontalStyle: React.CSSProperties = {
+  width: '100%',
+  display: 'flex',
+  overflowX: 'auto',
+  whiteSpace: 'nowrap',
   WebkitOverflowScrolling: 'touch',
   position: 'relative',
   outline: 'none',
@@ -11,18 +21,26 @@ const scrollerStyle: React.CSSProperties = {
 export type TScrollContainer = FC<{
   style: CSSProperties
   className?: string
+  isHorizontal?: boolean
   reportScrollTop: (scrollTop: number) => void
   scrollTo: (callback: (scrollTop: ScrollToOptions) => void) => void
 }>
 
-const DefaultScrollContainer: TScrollContainer = ({ className, style, reportScrollTop, scrollTo, children }) => {
+const DefaultScrollContainer: TScrollContainer = ({
+  className,
+  style,
+  reportScrollTop,
+  scrollTo,
+  isHorizontal,
+  children,
+}) => {
   const elRef = useRef<HTMLElement | null>(null)
   const smoothScrollTarget = useRef<number | null>(null)
   const currentScrollTop = useRef<number | null>()
 
   const onScroll: EventListener = useCallback(
     (e: Event) => {
-      const scrollTop = (e.target as HTMLDivElement).scrollTop
+      const scrollTop = isHorizontal ? (e.target as HTMLDivElement).scrollLeft : (e.target as HTMLDivElement).scrollTop
       currentScrollTop.current = scrollTop
       if (smoothScrollTarget.current !== null) {
         if (smoothScrollTarget.current === scrollTop) {
@@ -54,7 +72,13 @@ const DefaultScrollContainer: TScrollContainer = ({ className, style, reportScro
   )
 
   scrollTo(location => {
-    if (currentScrollTop.current !== location.top) {
+    if (isHorizontal && currentScrollTop.current !== location.left) {
+      if (location.behavior === 'smooth') {
+        smoothScrollTarget.current = location.left!
+      }
+      elRef.current && elRef.current!.scrollTo(location)
+    }
+    if (!isHorizontal && currentScrollTop.current !== location.top) {
       if (location.behavior === 'smooth') {
         smoothScrollTarget.current = location.top!
       }
@@ -73,15 +97,18 @@ export const VirtuosoScroller: FC<{
   className?: string
   style: CSSProperties
   ScrollContainer?: TScrollContainer
+  isHorizontal?: boolean
   scrollTop: (scrollTop: number) => void
   scrollTo: (callback: (scrollTop: ScrollToOptions) => void) => void
-}> = ({ children, style, className, ScrollContainer = DefaultScrollContainer, scrollTop, scrollTo }) => {
+}> = ({ children, style, className, ScrollContainer = DefaultScrollContainer, scrollTop, scrollTo, isHorizontal }) => {
+  const scrollerStyle = isHorizontal ? horizontalStyle : verticalStyle
   return (
     <ScrollContainer
       style={{ ...scrollerStyle, ...style }}
       reportScrollTop={scrollTop}
       scrollTo={scrollTo}
       className={className}
+      isHorizontal={isHorizontal}
     >
       {children}
     </ScrollContainer>
