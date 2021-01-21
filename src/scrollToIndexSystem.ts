@@ -19,9 +19,9 @@ export function normalizeIndexLocation(location: IndexLocation) {
 }
 
 export const scrollToIndexSystem = system(
-  ([{ sizes, totalCount, listRefresh }, { viewportHeight, scrollTo, smoothScrollTargetReached, headerHeight }]) => {
+  ([{ sizes, totalCount, listRefresh }, { viewportSize, scrollTo, smoothScrollTargetReached, headerHeight }]) => {
     const scrollToIndex = stream<IndexLocation>()
-    const topListHeight = statefulStream(0)
+    const topListSize = statefulStream(0)
 
     let unsubscribeNextListRefresh: any = null
     let cleartTimeoutRef: any = null
@@ -47,8 +47,8 @@ export const scrollToIndexSystem = system(
     connect(
       pipe(
         scrollToIndex,
-        withLatestFrom(sizes, viewportHeight, totalCount, topListHeight, headerHeight),
-        map(([location, sizes, viewportHeight, totalCount, topListHeight, headerHeight]) => {
+        withLatestFrom(sizes, viewportSize, totalCount, topListSize, headerHeight),
+        map(([location, sizes, viewportSize, totalCount, topListSize, headerHeight]) => {
           let { index, align, behavior } = normalizeIndexLocation(location)
           index = originalIndexFromItemIndex(index, sizes)
 
@@ -56,11 +56,11 @@ export const scrollToIndexSystem = system(
 
           let top = offsetOf(index, sizes) + headerHeight
           if (align === 'end') {
-            top = Math.round(top - viewportHeight + findMaxKeyValue(sizes.sizeTree, index)[1]!)
+            top = Math.round(top - viewportSize + findMaxKeyValue(sizes.sizeTree, index)[1]!)
           } else if (align === 'center') {
-            top = Math.round(top - viewportHeight / 2 + findMaxKeyValue(sizes.sizeTree, index)[1]! / 2)
+            top = Math.round(top - viewportSize / 2 + findMaxKeyValue(sizes.sizeTree, index)[1]! / 2)
           } else {
-            top -= topListHeight
+            top -= topListSize
           }
 
           let retry = (listChanged: boolean) => {
@@ -99,7 +99,7 @@ export const scrollToIndexSystem = system(
 
     return {
       scrollToIndex,
-      topListHeight,
+      topListSize,
     }
   },
   tup(sizeSystem, domIOSystem),

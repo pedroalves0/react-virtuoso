@@ -14,13 +14,13 @@ import { rangeComparator, tupleComparator } from './comparators'
 export type ListItems = ListItem<any>[]
 export interface TopListState {
   items: ListItems
-  listHeight: number
+  listSize: number
 }
 
 export interface ListState {
   items: ListItems
   topItems: ListItems
-  topListHeight: number
+  topListSize: number
   offsetTop: number
   offsetBottom: number
   top: number
@@ -47,7 +47,7 @@ const EMPTY_LIST_STATE: ListState = {
   offsetBottom: 0,
   top: 0,
   bottom: 0,
-  topListHeight: 0,
+  topListSize: 0,
 }
 
 function transposeItems(items: Item<any>[], sizes: SizeState, firstItemIndex: number): ListItems {
@@ -120,10 +120,20 @@ export function buildListState(
   const top = offsetTop
   const offsetBottom = total - bottom
 
+  console.log({
+    items: transposeItems(items, sizes, firstItemIndex),
+    topItems: transposeItems(topItems, sizes, firstItemIndex),
+    topListSize: topItems.reduce((size, item) => item.size + size, 0),
+    offsetTop,
+    offsetBottom,
+    top,
+    bottom,
+  })
+
   return {
     items: transposeItems(items, sizes, firstItemIndex),
     topItems: transposeItems(topItems, sizes, firstItemIndex),
-    topListHeight: topItems.reduce((height, item) => item.size + height, 0),
+    topListSize: topItems.reduce((size, item) => item.size + size, 0),
     offsetTop,
     offsetBottom,
     top,
@@ -136,9 +146,9 @@ export const listStateSystem = u.system(
     { statefulScrollTop, headerHeight },
     { sizes, totalCount, data, firstItemIndex },
     groupedListSystem,
-    { visibleRange, listBoundary, topListHeight: rangeTopListHeight },
+    { visibleRange, listBoundary, topListSize: rangeTopListSize },
     { scrolledToInitialItem, initialTopMostItemIndex },
-    { topListHeight },
+    { topListSize },
     stateFlags,
     { didMount },
   ]) => {
@@ -268,8 +278,8 @@ export const listStateSystem = u.system(
       totalCount
     )
 
-    u.connect(u.pipe(listState, u.map(u.prop('topListHeight'))), topListHeight)
-    u.connect(topListHeight, rangeTopListHeight)
+    u.connect(u.pipe(listState, u.map(u.prop('topListSize'))), topListSize)
+    u.connect(topListSize, rangeTopListSize)
     u.connect(listState, stateFlags.listStateListener)
 
     u.connect(

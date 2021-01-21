@@ -5,7 +5,8 @@ export type CallbackRefParam = HTMLElement | null
 export default function useScrollTop(
   scrollTopCallback: (scrollTop: number) => void,
   smoothScrollTargetReached: (yes: true) => void,
-  scrollerElement: any
+  scrollerElement: any,
+  scrollHorizontally: boolean
 ) {
   const scrollerRef = useRef<any>(null)
   const scrollTopTarget = useRef<any>(null)
@@ -14,11 +15,15 @@ export default function useScrollTop(
   const handler = useCallback(
     (ev: Event) => {
       const el = ev.target as HTMLElement
-      const scrollTop = el.scrollTop
+      const scrollTop = scrollHorizontally ? el.scrollLeft : el.scrollTop
       scrollTopCallback(Math.max(scrollTop, 0))
 
       if (scrollTopTarget.current !== null) {
-        if (scrollTop === scrollTopTarget.current || scrollTop <= 0 || scrollTop === el.scrollHeight - el.offsetHeight) {
+        if (
+          scrollTop === scrollTopTarget.current ||
+          scrollTop <= 0 ||
+          (scrollHorizontally ? scrollTop === el.scrollWidth - el.offsetWidth : scrollTop === el.scrollHeight - el.offsetHeight)
+        ) {
           scrollTopTarget.current = null
           smoothScrollTargetReached(true)
           if (timeoutRef.current) {
@@ -28,7 +33,7 @@ export default function useScrollTop(
         }
       }
     },
-    [scrollTopCallback, smoothScrollTargetReached]
+    [scrollHorizontally, scrollTopCallback, smoothScrollTargetReached]
   )
 
   useEffect(() => {

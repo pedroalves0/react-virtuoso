@@ -23,41 +23,42 @@ export const getOverscan = (overscan: Overscan, end: ListEnd, direction: ScrollD
 }
 
 export const sizeRangeSystem = u.system(
-  ([{ scrollTop, viewportHeight, deviation, headerHeight }]) => {
+  ([{ scrollTop, viewportSize, deviation, headerHeight, scrollHorizontally }]) => {
     const listBoundary = u.stream<NumberTuple>()
-    const topListHeight = u.statefulStream(0)
+    const topListSize = u.statefulStream(0)
     const overscan = u.statefulStream<Overscan>(0)
 
     const visibleRange = (u.statefulStreamFromEmitter(
       u.pipe(
         u.combineLatest(
           u.duc(scrollTop),
-          u.duc(viewportHeight),
+          u.duc(viewportSize),
           u.duc(headerHeight),
           u.duc(listBoundary, tupleComparator),
           u.duc(overscan),
-          u.duc(topListHeight),
-          u.duc(deviation)
+          u.duc(topListSize),
+          u.duc(deviation),
+          scrollHorizontally
         ),
-        u.map(([scrollTop, viewportHeight, headerHeight, [listTop, listBottom], overscan, topListHeight, deviation]) => {
+        u.map(([scrollTop, viewportSize, headerHeight, [listTop, listBottom], overscan, topListSize, deviation]) => {
           const top = scrollTop - headerHeight - deviation
           let direction: ChangeDirection = NONE
 
           listTop -= deviation
           listBottom -= deviation
 
-          if (listTop > scrollTop + topListHeight) {
+          if (listTop > scrollTop + topListSize) {
             direction = UP
           }
 
-          if (listBottom < scrollTop + viewportHeight) {
+          if (listBottom < scrollTop + viewportSize) {
             direction = DOWN
           }
 
           if (direction !== NONE) {
             return [
               Math.max(top - getOverscan(overscan, TOP, direction), 0),
-              top + viewportHeight + getOverscan(overscan, BOTTOM, direction),
+              top + viewportSize + getOverscan(overscan, BOTTOM, direction),
             ] as NumberTuple
           }
 
@@ -73,7 +74,7 @@ export const sizeRangeSystem = u.system(
       // input
       listBoundary,
       overscan,
-      topListHeight,
+      topListSize,
 
       // output
       visibleRange,

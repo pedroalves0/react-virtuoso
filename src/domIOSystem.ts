@@ -10,11 +10,12 @@ export const domIOSystem = u.system(
     const deviation = u.statefulStream(0)
     const smoothScrollTargetReached = u.stream<true>()
     const statefulScrollTop = u.statefulStream(0)
-    const viewportHeight = u.stream<number>()
+    const viewportSize = u.stream<number>()
     const headerHeight = u.statefulStream(0)
     const footerHeight = u.statefulStream(0)
     const scrollTo = u.stream<ScrollToOptions>()
     const scrollBy = u.stream<ScrollToOptions>()
+    const scrollHorizontally = u.statefulStream(false)
 
     u.connect(scrollTop, statefulScrollTop)
     const scrollDirection = u.statefulStream<ScrollDirection>(DOWN)
@@ -36,10 +37,11 @@ export const domIOSystem = u.system(
     return {
       // input
       scrollTop,
-      viewportHeight,
+      viewportSize,
       headerHeight,
       footerHeight,
       smoothScrollTargetReached,
+      scrollHorizontally,
 
       // signals
       scrollTo,

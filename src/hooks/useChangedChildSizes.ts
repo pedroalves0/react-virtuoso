@@ -1,9 +1,9 @@
 import { SizeRange } from '../sizeSystem'
 import useSize from './useSize'
 
-export default function useChangedChildSizes(callback: (ranges: SizeRange[]) => void, enabled: boolean) {
+export default function useChangedChildSizes(callback: (ranges: SizeRange[]) => void, enabled: boolean, scrollHorizontally: boolean) {
   return useSize((el: HTMLElement) => {
-    const ranges = getChangedChildSizes(el.children, 'offsetHeight')
+    const ranges = getChangedChildSizes(el.children, scrollHorizontally ? 'offsetWidth' : 'offsetHeight')
     if (ranges !== null) {
       callback(ranges)
     }

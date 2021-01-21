@@ -165,10 +165,12 @@ export interface VirtuosoProps<D> extends Omit<ListProps, 'groupCounts' | 'group
    * Use `followOutput` property to keep the list aligned when new items are appended.
    */
   alignToBottom?: boolean
+
+  scrollHorizontally?: boolean
 }
 
 export interface GroupedVirtuosoProps<D>
-  extends Omit<VirtuosoProps<D>, 'totalCount' | 'itemContent'>,
+  extends Omit<VirtuosoProps<D>, 'totalCount' | 'itemContent' | 'scrollHorizontally'>,
     Pick<ListProps, 'groupCounts' | 'groupContent'> {
   /**
    * Specifies the amount of items in each group (and, actually, how many groups are there).

@@ -158,6 +158,14 @@ const DefaultScrollSeekPlaceholder = ({ height }: { height: number }) => <div st
 
 const GROUP_STYLE = { position: positionStickyCssValue(), zIndex: 1 }
 
+const ITEM_STYLE: CSSProperties = {
+  display: 'block',
+}
+
+const HORIZONTAL_ITEM_STYLE: CSSProperties = {
+  display: 'inline-block',
+}
+
 export const Items = React.memo(function VirtuosoItems({ showTopList = false }: { showTopList?: boolean }) {
   const listState = useEmitterValue('listState')
   const deviation = useEmitterValue('deviation')
@@ -165,8 +173,9 @@ export const Items = React.memo(function VirtuosoItems({ showTopList = false }: 
   const itemContent = useEmitterValue('itemContent')
   const groupContent = useEmitterValue('groupContent')
   const trackItemSizes = useEmitterValue('trackItemSizes')
+  const scrollHorizontally = useEmitterValue('scrollHorizontally')
 
-  const ref = useChangedChildSizes(sizeRanges, trackItemSizes)
+  const ref = useChangedChildSizes(sizeRanges, trackItemSizes, scrollHorizontally)
   const EmptyPlaceholder = useEmitterValue('EmptyPlaceholder')
   const ScrollSeekPlaceholder = useEmitterValue('ScrollSeekPlaceholder') || DefaultScrollSeekPlaceholder
   const ListComponent = useEmitterValue('ListComponent')!
@@ -177,8 +186,12 @@ export const Items = React.memo(function VirtuosoItems({ showTopList = false }: 
   const hasGroups = useEmitterValue('groupIndices').length > 0
   const paddingTopAddition = useEmitterValue('paddingTopAddition')
 
-  const containerStyle: CSSProperties = showTopList
-    ? {}
+  const containerStyle: CSSProperties = scrollHorizontally
+    ? {
+        paddingLeft: (listState as ListState).offsetTop + paddingTopAddition,
+        paddingRight: (listState as ListState).offsetBottom,
+        marginTop: deviation,
+      }
     : {
         paddingTop: (listState as ListState).offsetTop + paddingTopAddition,
         paddingBottom: (listState as ListState).offsetBottom,
@@ -191,7 +204,7 @@ export const Items = React.memo(function VirtuosoItems({ showTopList = false }: 
 
   return createElement(
     ListComponent,
-    { ref, style: containerStyle },
+    { ref, style: showTopList ? {} : containerStyle },
     (showTopList ? listState.topItems : listState.items).map(item => {
       const index = item.originalIndex!
       const key = computeItemKey(index)
@@ -221,6 +234,7 @@ export const Items = React.memo(function VirtuosoItems({ showTopList = false }: 
             'data-known-size': item.size,
             'data-item-index': item.index,
             'data-item-group-index': item.groupIndex,
+            style: scrollHorizontally ? HORIZONTAL_ITEM_STYLE : ITEM_STYLE,
           } as any,
           itemContent.apply(null, (hasGroups ? [item.index, item.groupIndex, item.data] : [item.index, item.data]) as any)
         )
@@ -237,11 +251,28 @@ export const scrollerStyle: CSSProperties = {
   WebkitOverflowScrolling: 'touch',
 }
 
+export const horizontalScrollerStyle: CSSProperties = {
+  width: '100%',
+  display: 'flex',
+  overflowX: 'auto',
+  whiteSpace: 'nowrap',
+  WebkitOverflowScrolling: 'touch',
+  position: 'relative',
+  outline: 'none',
+}
+
 export const viewportStyle: CSSProperties = {
   width: '100%',
   height: '100%',
   position: 'absolute',
   top: 0,
+}
+
+export const horizontalViewportStyle: CSSProperties = {
+  width: '100%',
+  height: '100%',
+  position: 'absolute',
+  left: 0,
 }
 
 const topItemListStyle: CSSProperties = {
@@ -277,10 +308,13 @@ export function buildScroller({ usePublisher, useEmitter, useEmitterValue }: Hoo
     const scrollTopCallback = usePublisher('scrollTop')
     const ScrollerComponent = useEmitterValue('ScrollerComponent')!
     const smoothScrollTargetReached = usePublisher('smoothScrollTargetReached')
+    const scrollHorizontally = useEmitterValue('scrollHorizontally')
+    console.log(scrollHorizontally)
     const { scrollerRef, scrollByCallback, scrollToCallback } = useScrollTop(
       scrollTopCallback,
       smoothScrollTargetReached,
-      ScrollerComponent
+      ScrollerComponent,
+      scrollHorizontally
     )
 
     useEmitter('scrollTo', scrollToCallback)
@@ -289,7 +323,7 @@ export function buildScroller({ usePublisher, useEmitter, useEmitterValue }: Hoo
       ScrollerComponent,
       {
         ref: scrollerRef,
-        style: { ...scrollerStyle, ...style },
+        style: { ...(scrollHorizontally ? horizontalScrollerStyle : scrollerStyle), ...style },
         tabIndex: 0,
         ...props,
       },
@@ -300,13 +334,14 @@ export function buildScroller({ usePublisher, useEmitter, useEmitterValue }: Hoo
 }
 
 const ListRoot: FC<HTMLProps> = React.memo(function VirtuosoRoot({ ...props }) {
-  const viewportHeight = usePublisher('viewportHeight')
-  const viewportRef = useSize(compose(viewportHeight, prop('offsetHeight')))
+  const scrollHorizontally = useEmitterValue('scrollHorizontally')
+  const viewportSize = usePublisher('viewportSize')
+  const viewportRef = useSize(compose(viewportSize, prop(scrollHorizontally ? 'offsetWidth' : 'offsetHeight')))
   const headerHeight = useEmitterValue('headerHeight')
 
   return (
     <Scroller {...props}>
-      <div style={viewportStyle} ref={viewportRef}>
+      <div style={scrollHorizontally ? horizontalViewportStyle : viewportStyle} ref={viewportRef}>
         <Header />
         <Items />
         <Footer />
@@ -344,6 +379,7 @@ export const { Component: List, usePublisher, useEmitterValue, useEmitter } = sy
       initialItemCount: 'initialItemCount',
       initialScrollTop: 'initialScrollTop',
       alignToBottom: 'alignToBottom',
+      scrollHorizontally: 'scrollHorizontally',
 
       // deprecated
       item: 'item',

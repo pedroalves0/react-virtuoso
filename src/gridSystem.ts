@@ -61,7 +61,7 @@ function buildItems(startIndex: number, endIndex: number) {
 export const gridSystem = u.system(
   ([
     { overscan, visibleRange, listBoundary },
-    { scrollTop, viewportHeight, scrollBy, scrollTo },
+    { scrollTop, viewportSize, scrollBy, scrollTo },
     stateFlags,
     scrollSeek,
     { propsReady, didMount },
@@ -135,7 +135,7 @@ export const gridSystem = u.system(
         viewportDimensions,
         u.map(({ height }) => height)
       ),
-      viewportHeight
+      viewportSize
     )
 
     u.connect(

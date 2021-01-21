@@ -24,7 +24,7 @@ export interface ListBottomInfo {
   offsetBottom: number
 }
 
-export const stateFlagsSystem = system(([{ scrollTop, viewportHeight }]) => {
+export const stateFlagsSystem = system(([{ scrollTop, viewportSize }]) => {
   const isAtBottom = statefulStream(false)
   const isAtTop = statefulStream(true)
   const atBottomStateChange = stream<boolean>()
@@ -52,9 +52,9 @@ export const stateFlagsSystem = system(([{ scrollTop, viewportHeight }]) => {
 
   connect(
     pipe(
-      combineLatest(listStateListener, duc(scrollTop), duc(viewportHeight)),
-      map(([{ bottom, offsetBottom }, scrollTop, viewportHeight]) => {
-        return offsetBottom === 0 && scrollTop + viewportHeight - bottom > -4
+      combineLatest(listStateListener, duc(scrollTop), duc(viewportSize)),
+      map(([{ bottom, offsetBottom }, scrollTop, viewportSize]) => {
+        return offsetBottom === 0 && scrollTop + viewportSize - bottom > -4
       }),
       distinctUntilChanged()
     ),
